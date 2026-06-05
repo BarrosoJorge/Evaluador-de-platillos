@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.15)
+project(VideoLabeler)
+
+# Configuración de C++
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra")
+
+# Valor por defecto: Release
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+# Encontrar OpenCV
+find_package(OpenCV REQUIRED COMPONENTS core videoio highgui)
+
+# Crear ejecutable
+add_executable(video_labeler VideoLabeler.cpp)
+
+# Vincular OpenCV
+target_link_libraries(video_labeler PRIVATE ${OpenCV_LIBS})
+
+# Incluir directorios de OpenCV
+target_include_directories(video_labeler PRIVATE ${OpenCV_INCLUDE_DIRS})
+
+# Flags de compilación adicionales para optimización
+if(UNIX AND NOT APPLE)
+    target_compile_options(video_labeler PRIVATE -pthread)
+    target_link_options(video_labeler PRIVATE -pthread)
+endif()
+
+# Información de compilación
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
