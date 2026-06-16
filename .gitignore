@@ -1,0 +1,15 @@
+# Data
+Data/
+
+# Documentos
+*.md
+*.pdf
+
+# Binarios compilados (sin extensión)
+General scripts/labeler
+scripts de caracteristicas/Raw/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
