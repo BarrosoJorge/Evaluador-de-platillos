@@ -287,9 +287,10 @@ cv::Mat rotateSafe(const cv::Mat& image, double angle_deg, cv::Point2f center)
     const double cos_a = std::cos(rad);
     const double sin_a = std::sin(rad);
 
-    // Nuevo tamaño del canvas que contiene el rectángulo rotado
-    const int new_w = static_cast<int>(std::ceil(image.cols * cos_a + image.rows * sin_a));
-    const int new_h = static_cast<int>(std::ceil(image.cols * sin_a + image.rows * cos_a));
+    // Nuevo tamaño del canvas — usar abs(cos) y abs(sin) para que no sean negativos
+    // para ángulos en el segundo/tercer cuadrante (error en la versión original)
+    const int new_w = static_cast<int>(std::ceil(image.cols * std::abs(cos_a) + image.rows * std::abs(sin_a)));
+    const int new_h = static_cast<int>(std::ceil(image.cols * std::abs(sin_a) + image.rows * std::abs(cos_a)));
 
     cv::Mat rot = cv::getRotationMatrix2D(center, angle_deg, 1.0);
 
@@ -345,10 +346,29 @@ cv::Mat correctOrientation(const cv::Mat& image)
         return image.clone();
     }
 
-    std::cout << "  Ángulo detectado: " << angle << "° — aplicando corrección." << std::endl;
+    // Ángulos > 30° suelen indicar detección errónea (máscara con bordes irregulares)
+    if (std::abs(angle) > 30.0) {
+        std::cout << "  Orientación: ángulo " << angle
+                  << "° fuera de rango — no se corrige." << std::endl;
+        return image.clone();
+    }
 
-    // Rotar centrado en el objeto (centro del rectángulo mínimo de área)
-    return rotateSafe(image, -angle, min_rect.center);
+    std::cout << "  Ángulo corregido: " << angle << "°" << std::endl;
+
+    // Rotar centrado en el centro de la imagen (más estable que min_rect.center)
+    const cv::Point2f center(image.cols / 2.0f, image.rows / 2.0f);
+    cv::Mat rotated = rotateSafe(image, -angle, center);
+
+    // Recortar al bounding box del contenido no-negro
+    cv::Mat g;
+    if (rotated.channels() == 3) cv::cvtColor(rotated, g, cv::COLOR_BGR2GRAY);
+    else g = rotated.clone();
+    cv::Mat bin2;
+    cv::threshold(g, bin2, 1, 255, cv::THRESH_BINARY);
+    std::vector<cv::Point> pts;
+    cv::findNonZero(bin2, pts);
+    if (!pts.empty()) rotated = rotated(cv::boundingRect(pts)).clone();
+    return rotated;
 }
 
 // ============================================================================
@@ -446,8 +466,33 @@ cv::Mat alignToReference(const cv::Mat& student, const cv::Mat& reference)
 //   4. Resize final a 224×224 (el canvas puede haberse expandido en paso 2)
 cv::Mat preprocessImage(const cv::Mat& image, const cv::Mat& reference)
 {
+    // 0. Crop al bounding box del contenido segmentado con margen 5%
+    //    Garantiza que el platillo llene el cuadro antes de resize (igual que el PDF)
+    cv::Mat cropped;
+    {
+        cv::Mat g;
+        if (image.channels() == 3) cv::cvtColor(image, g, cv::COLOR_BGR2GRAY);
+        else g = image.clone();
+        cv::Mat bin;
+        cv::threshold(g, bin, 1, 255, cv::THRESH_BINARY);
+        std::vector<cv::Point> pts;
+        cv::findNonZero(bin, pts);
+        if (!pts.empty()) {
+            cv::Rect bb = cv::boundingRect(pts);
+            int px = static_cast<int>(bb.width  * 0.05);
+            int py = static_cast<int>(bb.height * 0.05);
+            bb.x     = std::max(0, bb.x - px);
+            bb.y     = std::max(0, bb.y - py);
+            bb.width  = std::min(image.cols - bb.x, bb.width  + 2 * px);
+            bb.height = std::min(image.rows - bb.y, bb.height + 2 * py);
+            cropped = image(bb).clone();
+        } else {
+            cropped = image.clone();
+        }
+    }
+
     // 1. Resize uniforme
-    cv::Mat resized = resizeUniform(image, 224);
+    cv::Mat resized = resizeUniform(cropped, 224);
 
     // 2. Corrección de orientación
     cv::Mat oriented = correctOrientation(resized);
@@ -553,11 +598,13 @@ void runBatchPipeline(std::vector<std::unique_ptr<ProcessedImage>>& images,
             ++total_processed;
         }
 
-        // Preprocess de imágenes de Estudiante (con alineación contra Chef)
+        // Preprocess del resto: Estudiantes (con alineación) y Chefs adicionales
         for (auto* img : group) {
-            if (img->metadata.isChef()) continue;
+            if (img == chef_ref) continue;   // la referencia ya fue procesada
 
-            std::cout << "\n[Estudiante] " << img->filename << std::endl;
+            const bool is_student = img->metadata.isEstudiante();
+            std::cout << "\n[" << (is_student ? "Estudiante" : "Chef")
+                      << "] " << img->filename << std::endl;
 
             const cv::Mat ref = chef_ref ? chef_ref->original : cv::Mat();
             img->preprocessed = preprocessImage(img->original, ref);
@@ -578,8 +625,8 @@ void runBatchPipeline(std::vector<std::unique_ptr<ProcessedImage>>& images,
 
 int main(int argc, char** argv)
 {
-    std::string input_dir  = "/mnt/d/Data/Segmentadas";
-    std::string output_dir = "/mnt/d/Data/Preprocesadas";
+    std::string input_dir  = "Data/Segmentadas";
+    std::string output_dir = "Data/Preprocesadas";
 
     if (argc >= 2) input_dir  = argv[1];
     if (argc >= 3) output_dir = argv[2];

@@ -67,8 +67,9 @@ std::vector<cv::Mat> computeFeatureMaps(const cv::Mat& gray, int w)
     const int out_rows = gray.rows - w + 1;
     const int out_cols = gray.cols - w + 1;
 
-    std::vector<cv::Mat> maps(N_FEATURES,
-        cv::Mat::zeros(out_rows, out_cols, CV_64F));
+    std::vector<cv::Mat> maps(N_FEATURES);
+    for (int k = 0; k < N_FEATURES; ++k)
+        maps[k] = cv::Mat::zeros(out_rows, out_cols, CV_64F);
 
     slideWindow(gray, w, [&](const cv::Mat& roi, int r, int c) {
         const auto feat = extractRawFeatures(roi);
@@ -85,9 +86,9 @@ std::vector<cv::Mat> computeFeatureMaps(const cv::Mat& gray, int w)
 
 int main(int argc, char** argv)
 {
-    std::string input_dir  = "/mnt/d/Data/Preprocesadas";
-    std::string output_csv = "features_raw.csv";
-    std::string maps_dir   = "/mnt/d/Data/FeatureMaps/Raw";
+    std::string input_dir  = "Data/Preprocesadas";
+    std::string output_csv = "Data/Features/features_raw.csv";
+    std::string maps_dir   = "Data/Features/maps/Raw";
 
     if (argc >= 2) input_dir  = argv[1];
     if (argc >= 3) output_csv = argv[2];

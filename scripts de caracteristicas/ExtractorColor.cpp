@@ -150,8 +150,9 @@ std::vector<cv::Mat> computeFeatureMaps(
     const int out_rows = img_rows - w + 1;
     const int out_cols = img_cols - w + 1;
 
-    std::vector<cv::Mat> maps(N_FEATURES,
-        cv::Mat::zeros(out_rows, out_cols, CV_64F));
+    std::vector<cv::Mat> maps(N_FEATURES);
+    for (int k = 0; k < N_FEATURES; ++k)
+        maps[k] = cv::Mat::zeros(out_rows, out_cols, CV_64F);
 
     for (int r = 0; r < out_rows; ++r) {
         for (int c = 0; c < out_cols; ++c) {
@@ -169,9 +170,9 @@ std::vector<cv::Mat> computeFeatureMaps(
 
 int main(int argc, char** argv)
 {
-    std::string input_dir  = "/mnt/d/Data/Preprocesadas";
-    std::string output_csv = "features_color.csv";
-    std::string maps_dir   = "/mnt/d/Data/FeatureMaps/Color";
+    std::string input_dir  = "Data/Preprocesadas";
+    std::string output_csv = "Data/Features/features_color.csv";
+    std::string maps_dir   = "Data/Features/maps/Color";
 
     if (argc >= 2) input_dir  = argv[1];
     if (argc >= 3) output_csv = argv[2];

@@ -412,19 +412,72 @@ void interactiveSegmentation(std::vector<std::unique_ptr<DishImage>>& images,
 }
 
 // ============================================================================
+// MODO AUTOMÁTICO — sin GUI
+// ============================================================================
+
+// Segmenta todas las imágenes sin intervención del usuario.
+// Usa un ROI central al 70% de la imagen (margen del 15% en cada lado).
+// Equivalente al modo interactivo pero no requiere pantalla ni ratón.
+void autoSegmentAll(std::vector<std::unique_ptr<DishImage>>& images,
+                    const std::string& output_dir)
+{
+    if (images.empty()) {
+        std::cout << "No hay imágenes para procesar." << std::endl;
+        return;
+    }
+
+    std::cout << "Modo automático — ROI central al 70%" << std::endl;
+
+    for (size_t i = 0; i < images.size(); ++i) {
+        DishImage* img = images[i].get();
+        std::cout << "\n[" << (i+1) << "/" << images.size() << "] "
+                  << img->filename << " (" << img->original.cols
+                  << "×" << img->original.rows << ")" << std::endl;
+
+        // ROI: margen 15% en cada lado
+        const int mx = static_cast<int>(img->original.cols * 0.15);
+        const int my = static_cast<int>(img->original.rows * 0.15);
+        const cv::Rect roi(mx, my,
+                           img->original.cols - 2 * mx,
+                           img->original.rows - 2 * my);
+
+        cv::Mat bin_mask = applyGrabCut(img->original, roi);
+        img->mask        = morphologicalPostprocess(bin_mask);
+        cv::Mat masked   = applyMaskToImage(img->original, img->mask);
+        img->segmented   = inpaintHoles(masked, img->mask);
+        img->processed   = true;
+
+        saveSegmented(*img, output_dir);
+    }
+
+    const long done = std::count_if(images.begin(), images.end(),
+        [](const std::unique_ptr<DishImage>& d){ return d->processed; });
+    std::cout << "\nTotal: " << done << " de " << images.size()
+              << " imágenes segmentadas." << std::endl;
+}
+
+// ============================================================================
 // FUNCIÓN PRINCIPAL
 // ============================================================================
 
 int main(int argc, char** argv)
 {
-    std::string input_dir  = "/mnt/d/Data/Raw/Imagenes";
-    std::string output_dir = "/mnt/d/Data/Segmentadas";
+    std::string input_dir  = "Data/Raw/Imagenes";
+    std::string output_dir = "Data/Segmentadas";
+    bool auto_mode = false;
 
-    if (argc >= 2) input_dir  = argv[1];
-    if (argc >= 3) output_dir = argv[2];
+    // Parsear argumentos: [--auto] [input_dir] [output_dir]
+    int pos = 0;
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--auto") { auto_mode = true; continue; }
+        if (pos == 0) { input_dir  = arg; ++pos; }
+        else          { output_dir = arg; ++pos; }
+    }
 
     std::cout << "GrabCut Segmentador de Platillos" << std::endl;
     std::cout << std::string(70, '=') << std::endl;
+    std::cout << "Modo:     " << (auto_mode ? "automático (--auto)" : "interactivo") << std::endl;
     std::cout << "Entrada:  " << input_dir  << std::endl;
     std::cout << "Salida:   " << output_dir << std::endl;
     std::cout << std::string(70, '=') << std::endl;
@@ -437,7 +490,10 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        interactiveSegmentation(images, output_dir);
+        if (auto_mode)
+            autoSegmentAll(images, output_dir);
+        else
+            interactiveSegmentation(images, output_dir);
 
     } catch (const std::exception& e) {
         std::cerr << "Error fatal: " << e.what() << std::endl;

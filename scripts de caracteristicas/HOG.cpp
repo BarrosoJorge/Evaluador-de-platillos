@@ -186,9 +186,9 @@ HOGDescriptor computeHOGDescriptor(const cv::Mat& gray)
 
 int main(int argc, char** argv)
 {
-    std::string input_dir  = "/mnt/d/Data/Preprocesadas";
-    std::string output_csv = "features_hog.csv";
-    std::string maps_dir   = "/mnt/d/Data/FeatureMaps/HOG";
+    std::string input_dir  = "Data/Preprocesadas";
+    std::string output_csv = "Data/Features/features_hog.csv";
+    std::string maps_dir   = "Data/Features/maps/HOG";
 
     if (argc >= 2) input_dir  = argv[1];
     if (argc >= 3) output_csv = argv[2];

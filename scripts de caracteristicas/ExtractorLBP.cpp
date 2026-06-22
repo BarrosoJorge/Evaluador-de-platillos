@@ -73,8 +73,9 @@ std::vector<cv::Mat> computeFeatureMaps(const cv::Mat& lbp_image, int w)
     const int out_rows = lbp_image.rows - w + 1;
     const int out_cols = lbp_image.cols - w + 1;
 
-    std::vector<cv::Mat> maps(N_FEATURES,
-        cv::Mat::zeros(out_rows, out_cols, CV_64F));
+    std::vector<cv::Mat> maps(N_FEATURES);
+    for (int k = 0; k < N_FEATURES; ++k)
+        maps[k] = cv::Mat::zeros(out_rows, out_cols, CV_64F);
 
     slideWindow(lbp_image, w, [&](const cv::Mat& roi, int r, int c) {
         const auto feat = extractLBPFeatures(roi);
@@ -91,9 +92,9 @@ std::vector<cv::Mat> computeFeatureMaps(const cv::Mat& lbp_image, int w)
 
 int main(int argc, char** argv)
 {
-    std::string input_dir  = "/mnt/d/Data/Preprocesadas";
-    std::string output_csv = "features_lbp.csv";
-    std::string maps_dir   = "/mnt/d/Data/FeatureMaps/LBP";
+    std::string input_dir  = "Data/Preprocesadas";
+    std::string output_csv = "Data/Features/features_lbp.csv";
+    std::string maps_dir   = "Data/Features/maps/LBP";
 
     if (argc >= 2) input_dir  = argv[1];
     if (argc >= 3) output_csv = argv[2];
