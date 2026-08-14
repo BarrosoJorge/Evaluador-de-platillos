@@ -8,17 +8,8 @@
 
 namespace evaluador {
 
-// Carga archivos de configuracion simples tipo clave=valor, uno por linea.
-// Lineas vacias o que empiezan con '#' se ignoran.
-//
-// Ejemplo de archivo config.ini:
-//   ruta_data = ./Data
-//   imagenes_por_video = 15
-//   umbral_confianza_matching = 0.75
-//
-// Uso:
-//   ConfigLoader config("config.ini");
-//   int n = config.get<int>("imagenes_por_video").value_or(10);
+// Carga configuracion simple en formato clave=valor por linea.
+// Ignora lineas vacias y comentarios iniciados con '#'.
 class ConfigLoader {
 public:
     explicit ConfigLoader(const std::filesystem::path& rutaArchivo);
@@ -53,8 +44,7 @@ private:
     bool cargadoExitosamente_ = false;
 };
 
-// Especializacion para string: get<std::string>("clave") funciona directo
-// sin pasar por istringstream (evita cortar en el primer espacio).
+// Especializacion para string sin parseo por stream.
 template <>
 inline std::optional<std::string> ConfigLoader::get<std::string>(const std::string& clave) const {
     return getString(clave);

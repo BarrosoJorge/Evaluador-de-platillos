@@ -58,9 +58,7 @@ namespace fs = std::filesystem;
 static const std::vector<int> TEST_WINDOWS = {3, 11, 25};
 static constexpr int SDH_BINS_TEST = 64;   // bins para SDH (64 en vez de 256, más rápido)
 
-// ============================================================================
 // TIMER UTILITARIO
-// ============================================================================
 
 struct Timer {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
@@ -74,9 +72,7 @@ static void printStep(const std::string& msg) {
     std::cout << "\n[" << msg << "]" << std::endl;
 }
 
-// ============================================================================
 // ETAPA 1 — SEGMENTACIÓN AUTOMÁTICA
-// ============================================================================
 
 // GrabCut con ROI generado automáticamente al 70% central de la imagen
 cv::Mat segmentAuto(const cv::Mat& image,
@@ -128,9 +124,7 @@ cv::Mat segmentAuto(const cv::Mat& image,
     return out_segmented;
 }
 
-// ============================================================================
 // ETAPA 2 — PREPROCESAMIENTO (resize + orientación)
-// ============================================================================
 
 cv::Mat resizeUniform224(const cv::Mat& image)
 {
@@ -200,9 +194,7 @@ cv::Mat correctOrientationLocal(const cv::Mat& image)
     return result;
 }
 
-// ============================================================================
 // ETAPA 3 — EXTRACTORES DE CARACTERÍSTICAS (versión test, ventanas reducidas)
-// ============================================================================
 
 // ── RAW ─────────────────────────────────────────────────────────────────────
 
@@ -427,9 +419,7 @@ std::vector<cv::Mat> colorFeatureMaps(const cv::Mat& bgr_img, int w)
     return maps;
 }
 
-// ============================================================================
 // GUARDADO DE RESULTADOS
-// ============================================================================
 
 void writeCSVRow(const std::string& csv_path,
                  const std::string& label,
@@ -474,13 +464,13 @@ void saveMapsAndRow(const std::vector<cv::Mat>& maps,
     }
 }
 
-// ============================================================================
 // FUNCIÓN PRINCIPAL
-// ============================================================================
 
+// Ejecuta una prueba integral del pipeline para una imagen.
+// Devuelve 0 si termina correctamente.
 int main(int argc, char** argv)
 {
-    // ── Rutas (relativas al directorio de trabajo = raíz del proyecto) ───────
+    // Rutas relativas a la raiz del proyecto.
     std::string img_path = argc >= 2 ? argv[1]
         : "Data/Raw/Imagenes/CDMX/Limon/Lateral/Chef/CDMX_Limon_Lateral_Chef_0.jpg";
     std::string out_image_dir = argc >= 3 ? argv[2]
@@ -490,9 +480,7 @@ int main(int argc, char** argv)
 
     const std::string maps_dir = out_feat_dir + "/maps";
 
-    std::cout << "=========================================" << std::endl;
-    std::cout << " PIPELINE SINGLE — prueba integral" << std::endl;
-    std::cout << "=========================================" << std::endl;
+    std::cout << "Pipeline single" << std::endl;
     std::cout << "Imagen:   " << img_path << std::endl;
     std::cout << "Imágenes: " << out_image_dir << std::endl;
     std::cout << "Features: " << out_feat_dir  << std::endl;
@@ -500,7 +488,7 @@ int main(int argc, char** argv)
     for (int w : TEST_WINDOWS) std::cout << w << " ";
     std::cout << std::endl;
 
-    // ── Verificar entrada ────────────────────────────────────────────────────
+    // Verifica que la imagen de entrada exista.
     if (!fs::exists(img_path)) {
         std::cerr << "Error: no se encontró la imagen: " << img_path << std::endl;
         return 1;
@@ -512,7 +500,7 @@ int main(int argc, char** argv)
     const std::string stem = fs::path(img_path).stem().string();
     const std::string label = "CDMX_Limon_Chef";    // etiqueta manual para 1 imagen
 
-    // ── Cargar imagen ────────────────────────────────────────────────────────
+    // Carga la imagen original.
     cv::Mat original = cv::imread(img_path);
     if (original.empty()) {
         std::cerr << "No se pudo cargar: " << img_path << std::endl;
@@ -520,7 +508,7 @@ int main(int argc, char** argv)
     }
     std::cout << "\nImagen cargada: " << original.cols << "×" << original.rows << " px" << std::endl;
 
-    // ── ETAPA 1: SEGMENTACIÓN ────────────────────────────────────────────────
+    // Etapa 1: segmentacion.
     Timer t1;
     printStep("ETAPA 1 — Segmentación automática GrabCut");
     cv::Mat mask, segmented;
@@ -531,7 +519,7 @@ int main(int argc, char** argv)
     cv::imwrite(out_image_dir + "/" + stem + "_seg.png",  segmented);
     std::cout << "  Guardado: _seg.png + _mask.png" << std::endl;
 
-    // ── ETAPA 2: PREPROCESAMIENTO ────────────────────────────────────────────
+    // Etapa 2: preprocesamiento.
     Timer t2;
     printStep("ETAPA 2 — Preprocesamiento (crop → resize 224×224 → orientación)");
 
@@ -579,7 +567,7 @@ int main(int argc, char** argv)
     cv::Mat gray;
     cv::cvtColor(preprocessed, gray, cv::COLOR_BGR2GRAY);
 
-    // ── ETAPA 3: EXTRACCIÓN DE CARACTERÍSTICAS ───────────────────────────────
+    // Etapa 3: extraccion de caracteristicas.
 
     // ─ 3A. RAW ───────────────────────────────────────────────────────────────
     {
@@ -731,10 +719,9 @@ int main(int argc, char** argv)
         std::cout << "  Tiempo: " << t.elapsed() << "s" << std::endl;
     }
 
-    // ── RESUMEN ───────────────────────────────────────────────────────────────
-    std::cout << "\n=========================================" << std::endl;
-    std::cout << " PIPELINE COMPLETADO" << std::endl;
-    std::cout << "=========================================" << std::endl;
+    // Resumen de salida.
+    std::cout << std::endl;
+    std::cout << "Pipeline completado" << std::endl;
     std::cout << "Imágenes guardadas en: " << out_image_dir << std::endl;
     std::cout << "  " << stem << "_seg.png   (segmentada)"  << std::endl;
     std::cout << "  " << stem << "_mask.png  (máscara)"     << std::endl;
@@ -748,10 +735,3 @@ int main(int argc, char** argv)
 
     return 0;
 }
-
-// Compilación:
-//   g++ -std=c++17 -O2 -o PipelineSingle PipelineSingle.cpp \
-//       `pkg-config --cflags --libs opencv4`
-//
-// Uso:
-//   ./PipelineSingle [ruta_imagen] [ruta_salida_imagen] [ruta_salida_features]

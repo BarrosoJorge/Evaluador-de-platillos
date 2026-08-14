@@ -22,6 +22,7 @@ struct FirmaPlatillo {
     GlobalFeatureVector global;
 };
 
+/// Calcula distancias de Mahalanobis para una dimension y las escribe en CSV.
 void procesarDimension(const std::string& nombreDimension, const cv::Mat& xChef, const cv::Mat& XAlumnos,
                        const std::vector<std::string>& nombresAlumnos, std::ofstream& csvOut) {
     if (XAlumnos.rows == 0 || xChef.empty()) return;
@@ -36,6 +37,8 @@ void procesarDimension(const std::string& nombreDimension, const cv::Mat& xChef,
     }
 }
 
+/// Ejecuta la comparacion estadistica de una sesion completa.
+/// Devuelve 0 si el archivo de distancias se genera correctamente.
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Uso: ./comparador <Clave_Sesion>" << std::endl;
@@ -46,8 +49,7 @@ int main(int argc, char** argv) {
     fs::path raiz = fs::current_path();
     PathManager rutas(raiz);
     
-    // CONEXIÓN DE RUTAS DIRECTA:
-    // Leemos las dos ramas paralelas de la Etapa 3
+    // Lee las dos ramas de salida de la etapa 3.
     fs::path carpetaGlobal   = rutas.featuresEstadisticosGlobal() / claveDish;
     fs::path carpetaPorRegion = rutas.featuresEstadisticosPorRegion() / claveDish;
     
@@ -102,9 +104,7 @@ int main(int argc, char** argv) {
         nombresAlumnos.push_back(al.nombreArchivo);
     }
 
-    // =========================================================================
-    // 1. PROCESAR VARIABLES GLOBALES
-    // =========================================================================
+    // Procesa el bloque de variables globales.
     cv::Mat xChefG(1, 4, CV_64F);
     xChefG.at<double>(0, 0) = chef.global.simetria;
     xChefG.at<double>(0, 1) = chef.global.limpieza;
@@ -120,9 +120,7 @@ int main(int argc, char** argv) {
     }
     procesarDimension("global", xChefG, XAlumG, nombresAlumnos, csvDist);
 
-    // =========================================================================
-    // 2. PROCESAR CADA PARCHE / ZONA ESPACIAL (16 ZONAS)
-    // =========================================================================
+    // Procesa cada zona espacial y sus subdescriptores.
     for (const auto& regChef : chef.regiones) {
         std::string nombreZona = regChef.nombreRegion; // ej. "zona_0_0"
 
@@ -145,7 +143,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        // Se evalúa cada sub-descriptor de la zona por separado (Opción A)
+        // Evalua cada subdescriptor por separado.
         procesarDimension(nombreZona + "_color",   xChefColor, XAlumColor, nombresAlumnos, csvDist);
         procesarDimension(nombreZona + "_textura", xChefTex,   XAlumTex,   nombresAlumnos, csvDist);
         procesarDimension(nombreZona + "_lbp",     xChefLbp,   XAlumLbp,   nombresAlumnos, csvDist);

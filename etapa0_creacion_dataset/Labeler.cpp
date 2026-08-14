@@ -38,9 +38,7 @@ Cambios respecto a tu version original:
 namespace fs = std::filesystem;
 using namespace evaluador;
 
-// ============================================================================
 // ESTRUCTURAS DE DATOS
-// ============================================================================
 
 struct Video {
     cv::Mat first_frame;               // Primer frame del video, usado como preview
@@ -89,9 +87,7 @@ struct Video {
     }
 };
 
-// ============================================================================
 // DECLARACIONES
-// ============================================================================
 
 std::vector<std::unique_ptr<Video>> batchLoad(const std::string& directory);
 bool renameVideo(Video* video, const VideoMetadata& new_metadata);
@@ -99,9 +95,7 @@ bool renameVideoByName(Video* video, const std::string& new_basename);
 void interactiveSession(std::vector<std::unique_ptr<Video>>& videos);
 std::string getExtension(const std::string& filename);
 
-// ============================================================================
 // IMPLEMENTACIONES
-// ============================================================================
 
 std::string getExtension(const std::string& filename) {
     size_t dot_pos = filename.find_last_of('.');
@@ -244,9 +238,9 @@ void interactiveSession(std::vector<std::unique_ptr<Video>>& videos) {
     for (size_t i = 0; i < videos.size(); ++i) {
         Video* current_video = videos[i].get();
 
-        std::cout << "\n" << std::string(70, '=') << std::endl;
+        std::cout << "\n" << std::string(1, ' ') << std::endl;
         std::cout << "Video " << (i + 1) << " de " << videos.size() << std::endl;
-        std::cout << std::string(70, '=') << std::endl;
+        std::cout << std::string(1, ' ') << std::endl;
         std::cout << "Nombre actual: " << current_video->current_filename << std::endl;
 
         const int maxW = 480;
@@ -305,9 +299,7 @@ void interactiveSession(std::vector<std::unique_ptr<Video>>& videos) {
     Logger::instance().info("Labeler", "Proceso completado.");
 }
 
-// ============================================================================
 // FUNCION PRINCIPAL
-// ============================================================================
 
 int main(int argc, char* argv[]) {
     // PathManager reemplaza la ruta hardcodeada anterior. Si necesitas

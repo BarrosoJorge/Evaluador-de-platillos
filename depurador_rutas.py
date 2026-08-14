@@ -18,3 +18,4 @@ def generar_md_rutas(ruta_padre):
 if __name__ == "__main__":
     ruta_padre = os.getcwd()  # Obtiene la ruta de la carpeta de trabajo actual
     generar_md_rutas(ruta_padre)
+    

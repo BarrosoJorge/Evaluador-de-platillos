@@ -1,37 +1,5 @@
-/*  FuzzificadorSesion.cpp
- *
- *  Etapa 5 del pipeline — Fuzzificación.
- *
- *  Lee el CSV que dejo ComparadorSesion.cpp (etapa 4) — una fila por
- *  alumno por dimension (region o "global") con su distancia de
- *  Mahalanobis — y para cada dimension:
- *    1. CalculadorPercentiles: p33/p50/p66 sobre las distancias de
- *       TODOS los alumnos de esa dimension en esta sesion
- *    2. Fuzzificador: convierte cada distancia individual en 3 grados
- *       de pertenencia (similar / algo_distinto / muy_distinto)
- *
- *  Importante: las anclas se calculan POR DIMENSION Y POR SESION, no
- *  son valores globales del proyecto. Esto es a proposito — la
- *  distribucion de distancias de "textura de la salsa" no tiene por
- *  que parecerse a la de "simetria global", y una sesion con un
- *  platillo dificil puede tener distancias mas grandes en general que
- *  una sesion con un platillo simple. Fuzzificar con las anclas de la
- *  MISMA sesion es lo que evita tener que elegir umbrales fijos a mano.
- *
- *  Entrada:  Data/Comparacion/Distancias/<claveDish>.csv
- *  Salida:   Data/Fuzzy/Percentiles/<claveDish>.csv   (anclas por dimension)
- *            Data/Fuzzy/Pertenencias/<claveDish>.csv  (grados por alumno x dimension)
- *
- *  Compilación:
- *      g++ -std=c++17 -O2 -I../scripts_genericos/include \
- *          ../scripts_genericos/src/Logger.cpp \
- *          ../scripts_genericos/src/PathManager.cpp \
- *          ../scripts_genericos/src/CalculadorPercentiles.cpp \
- *          ../scripts_genericos/src/Fuzzificador.cpp \
- *          FuzzificadorSesion.cpp -o fuzzificador_sesion
- *
- *  Uso:
- *      ./fuzzificador_sesion <Ciudad_Platillo_Angulo>
+/* Etapa 5: fuzzifica distancias por dimension para una sesion.
+ * Genera anclas percentiles y pertenencias por alumno.
  */
 
 #include "Logger.hpp"
@@ -56,7 +24,7 @@ struct FilaDistancia {
     double distancia = 0.0;
 };
 
-// Lee el CSV de distancias de la etapa 4 (separador ';', con header).
+/// Lee el archivo de distancias y devuelve filas validas.
 std::vector<FilaDistancia> leerDistancias(const fs::path& ruta) {
     std::vector<FilaDistancia> filas;
     std::ifstream archivo(ruta);
@@ -91,6 +59,8 @@ std::vector<FilaDistancia> leerDistancias(const fs::path& ruta) {
     return filas;
 }
 
+/// Ejecuta la fuzzificacion por dimension para una sesion.
+/// Devuelve 0 si los CSV de salida se generan correctamente.
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Uso: " << argv[0] << " <Ciudad_Platillo_Angulo>" << std::endl;
@@ -108,7 +78,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Agrupar distancias por dimension, para calcular las anclas de cada una
+    // Agrupa distancias por dimension para calcular anclas locales.
     std::map<std::string, std::vector<double>> distanciasPorDimension;
     for (const auto& f : filas) {
         distanciasPorDimension[f.dimension].push_back(f.distancia);
@@ -123,7 +93,7 @@ int main(int argc, char** argv) {
             " p66=" + std::to_string(anclasPorDimension[dimension].p66));
     }
 
-    // --- Guardar anclas ---
+    // Guarda anclas percentiles.
     fs::path rutaPercentiles = rutas.fuzzyPercentiles() / (claveDish + ".csv");
     std::error_code ec;
     fs::create_directories(rutaPercentiles.parent_path(), ec);
@@ -134,7 +104,7 @@ int main(int argc, char** argv) {
                         << ";" << distanciasPorDimension[dimension].size() << "\n";
     }
 
-    // --- Fuzzificar cada fila y guardar pertenencias ---
+    // Fuzzifica cada fila y guarda pertenencias.
     fs::path rutaPertenencias = rutas.fuzzyPertenencias() / (claveDish + ".csv");
     fs::create_directories(rutaPertenencias.parent_path(), ec);
     std::ofstream csvPertenencias(rutaPertenencias);
@@ -148,9 +118,7 @@ int main(int argc, char** argv) {
         csvPertenencias << f.alumno << ";" << f.dimension << ";" << f.distancia << ";"
                          << grados.similar << ";" << grados.algoDistinto << ";" << grados.muyDistinto << "\n";
 
-        // Señal util para priorizar revision manual: si "muy_distinto"
-        // domina claramente, es un caso que vale la pena que un humano
-        // revise antes de confiar en la rubrica final.
+        // Marca casos dominados por "muy_distinto" para revision manual.
         if (grados.muyDistinto > 0.66) {
             ++revisionesSugeridas;
         }
@@ -162,7 +130,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-// Compilación: ver bloque al inicio del archivo.
-// Uso:
-//   ./fuzzificador_sesion <Ciudad_Platillo_Angulo>

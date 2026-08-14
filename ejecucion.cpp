@@ -19,9 +19,8 @@ int main() {
             // Solo procesar si es archivo _pre.png
             if (imgPre.find("_pre.png") == std::string::npos) continue;
 
-            std::cout << "\n==================================================" << std::endl;
+            std::cout << std::endl;
             std::cout << "Procesando: " << entry.path().filename().string() << std::endl;
-            std::cout << "==================================================" << std::endl;
 
             // 1. Etapa 2: Generar Mascara Global y Grid (Zonas)
             ejecutarComando("./generador_grid \"" + imgPre + "\"");
@@ -45,6 +44,6 @@ int main() {
             }
         }
     }
-    std::cout << "\n¡Pipeline completo!" << std::endl;
+        std::cout << "\nPipeline completo" << std::endl;
     return 0;
 }

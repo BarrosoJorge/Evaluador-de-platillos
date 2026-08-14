@@ -1,31 +1,5 @@
-/*  Ensamblador.cpp
- *
- *  Etapa 3 del pipeline — Ensamblado del vector final.
- *
- *  Junta lo que produjeron VectorizadorPorRegion y VectorizadorGlobal
- *  (las dos ramas en paralelo) para UNA imagen, en un solo archivo. No
- *  vuelve a calcular nada — solo lee los dos CSV ya generados y los
- *  concatena en un tercero. Este archivo final es el que consume la
- *  etapa 4 (comparacion estadistica / Mahalanobis).
- *
- *  Entrada:  metadatos de una imagen (misma ruta *_pre.png que se le
- *            paso antes a VectorizadorPorRegion/VectorizadorGlobal)
- *  Salida:   Data/Features/VectorFinal/<claveDish>/<nombreImagen>.csv
- *
- *  Compilación:
- *      g++ -std=c++17 -O2 -I../scripts_genericos/include \
- *          ../scripts_genericos/src/Logger.cpp \
- *          ../scripts_genericos/src/PathManager.cpp \
- *          ../scripts_genericos/src/VideoMetadata.cpp \
- *          ../scripts_genericos/src/ColorEstadisticas.cpp \
- *          ../scripts_genericos/src/TexturaGLCM.cpp \
- *          ../scripts_genericos/src/ReductorEstadisticos.cpp \
- *          ../scripts_genericos/src/FeatureVector.cpp \
- *          Ensamblador.cpp -o ensamblador \
- *          `pkg-config --cflags --libs opencv4`
- *
- *  Uso:
- *      ./ensamblador <ruta_imagen_preprocesada>
+/* Ensambla los descriptores por region y global para una imagen.
+ * Etapa 3: genera un vector final combinado en formato CSV.
  */
 
 #include "Logger.hpp"
@@ -41,6 +15,8 @@
 namespace fs = std::filesystem;
 using namespace evaluador;
 
+/// Ejecuta el ensamblado de features para una imagen preprocesada.
+/// Devuelve 0 si el archivo de salida se genera correctamente.
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Uso: " << argv[0] << " <ruta_imagen_preprocesada>" << std::endl;
@@ -100,10 +76,7 @@ int main(int argc, char** argv) {
     salida << "# imagen=" << nombreImagen << "\n";
     salida << "# dish=" << claveDish << "\n\n";
 
-    // Copiar el contenido crudo de ambos archivos fuente, cada uno con
-    // su propia seccion — no se re-serializa a mano para no arriesgar
-    // una inconsistencia con el formato que ya escriben
-    // guardarFeaturesPorRegion()/guardarFeaturesGlobal().
+    // Copia directa de los archivos fuente para conservar su formato.
     salida << "## por_region\n";
     std::ifstream origenRegion(rutaPorRegion);
     salida << origenRegion.rdbuf();
@@ -116,7 +89,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-// Compilación: ver bloque al inicio del archivo.
-// Uso:
-//   ./ensamblador <ruta_imagen_preprocesada>

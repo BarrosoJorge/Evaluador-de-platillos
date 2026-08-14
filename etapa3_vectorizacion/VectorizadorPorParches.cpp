@@ -13,6 +13,8 @@
 using namespace evaluador;
 namespace fs = std::filesystem;
 
+/// Calcula descriptores por zona espacial usando mascaras de grid.
+/// Devuelve 0 si los vectores por region se guardan correctamente.
 int main(int argc, char** argv) {
     if (argc < 3) {
         std::cerr << "Uso: ./vectorizador_parches <ruta_imagen_pre> <ruta_mascara_global>\n";
@@ -42,7 +44,7 @@ int main(int argc, char** argv) {
 
     std::vector<RegionFeatureVector> vectores;
     
-    // --- AQUÍ ESTÁ LA CLAVE: BUSCAR EN LA CARPETA LOCAL 'Grids' ---
+    // Usa la carpeta local Grids generada en la etapa 2.
     fs::path dirGrids = rutaImagen.parent_path() / "Grids";
 
     int gridSize = 4;
@@ -52,13 +54,13 @@ int main(int argc, char** argv) {
             fs::path rutaMascaraGrid = dirGrids / (nombreZona + ".png");
 
             cv::Mat mascaraGrid = cv::imread(rutaMascaraGrid.string(), cv::IMREAD_GRAYSCALE);
-            if (mascaraGrid.empty()) continue; // Si por algo no existe, se salta
+            if (mascaraGrid.empty()) continue;
 
-            // Intersección: Solo evaluamos la "comida" que caiga dentro de esta zona
+            // Interseccion entre zona geometrica y alimento real.
             cv::Mat mascaraComidaEnZona;
             cv::bitwise_and(mascaraGrid, mascaraGlobal, mascaraComidaEnZona);
 
-            // Ignorar parches que agarren puro plato vacío (menos de 50 px de comida)
+            // Ignora zonas sin contenido suficiente de alimento.
             if (cv::countNonZero(mascaraComidaEnZona) < 50) continue;
 
             RegionFeatureVector v;
@@ -72,7 +74,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    // Guardado oficial usando PathManager
+    // Guarda salida con rutas del proyecto.
     fs::path rutaSalida = rutas.featuresEstadisticosPorRegion() / claveDish / (metadata.formatear() + ".csv");
     guardarFeaturesPorRegion(vectores, rutaSalida);
     

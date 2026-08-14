@@ -8,6 +8,8 @@
 using namespace evaluador;
 namespace fs = std::filesystem;
 
+/// Calcula descriptores globales de una imagen y su mascara.
+/// Devuelve 0 si el vector global se guarda correctamente.
 int main(int argc, char** argv) {
     if (argc < 3) {
         std::cerr << "Uso: ./vectorizador_global <ruta_imagen_pre> <ruta_mascara_global>\n";
@@ -30,7 +32,7 @@ int main(int argc, char** argv) {
 
     GlobalFeatureVector global;
 
-    // 1. Simetría/Equilibrio
+    // Simetria y equilibrio por centroide de la mascara.
     cv::Moments m = cv::moments(mascaraGlobal, true);
     if (m.m00 > 0) {
         double cx = m.m10 / m.m00;
@@ -42,7 +44,7 @@ int main(int argc, char** argv) {
         global.simetria = 0.0;
     }
 
-    // 2. Limpieza
+    // Limpieza por conteo de manchas pequenas.
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(mascaraGlobal, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     int manchasPequenas = 0;
@@ -56,7 +58,7 @@ int main(int argc, char** argv) {
     }
     global.limpieza = static_cast<double>(manchasPequenas);
 
-    // 3. Enfoque
+    // Enfoque por varianza del Laplaciano dentro de la mascara.
     cv::Mat imagenGris;
     cv::Mat imagenBGR = cv::imread(rutaImagen.string(), cv::IMREAD_COLOR);
     cv::cvtColor(imagenBGR, imagenGris, cv::COLOR_BGR2GRAY);
@@ -66,10 +68,10 @@ int main(int argc, char** argv) {
     cv::meanStdDev(laplaciano, mean, stddev, mascaraGlobal);
     global.enfoque = stddev.val[0] * stddev.val[0];
 
-    // 4. Volumen
+    // Proporcion de area ocupada como aproximacion global.
     global.volumenGeneral = areaTotalComida / (mascaraGlobal.cols * mascaraGlobal.rows);
 
-    // Guardado oficial usando PathManager
+    // Guarda salida con rutas del proyecto.
     fs::path rutaSalida = rutas.featuresEstadisticosGlobal() / claveDish / (metadata.formatear() + ".csv");
     guardarFeaturesGlobal(global, rutaSalida);
     

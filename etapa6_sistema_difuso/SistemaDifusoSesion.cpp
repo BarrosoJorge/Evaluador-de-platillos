@@ -1,40 +1,5 @@
-/*  SistemaDifusoSesion.cpp
- *
- *  Etapa 6 del pipeline — Sistema difuso (reglas + defuzzificación).
- *
- *  Lee el CSV que dejo FuzzificadorSesion.cpp (etapa 5) — grados de
- *  pertenencia por alumno x dimension — y para cada fila:
- *    1. MotorReglas: convierte los 3 grados en pares (fuerza, valor)
- *       usando la TablaReglas por defecto (ver MotorReglas.hpp)
- *    2. Defuzzificador: promedio ponderado -> un score 1-10
- *
- *  Esta es la salida MAS FINA del pipeline: un numero por cada
- *  dimension elemental (ej. "carne_textura", "carne_color",
- *  "salsa_lbp", "simetria", "enfoque"...) por alumno. La etapa 7 es
- *  quien agrega estos numeros en las 6 categorias de la rubrica final
- *  que ve el alumno — este script NO hace esa agregacion.
- *
- *  AjustadorReglas (pendiente, no implementado aqui): cuando existan
- *  calificaciones reales del chef por dimension, se podria ajustar
- *  TablaReglas via ANFIS o un algoritmo genetico en vez de usar los
- *  valores por defecto. Como TablaReglas ya es un parametro y no una
- *  constante fija, ese futuro ajustador seria un programa que
- *  produce una TablaReglas distinta — no requeriria tocar MotorReglas
- *  ni Defuzzificador.
- *
- *  Entrada:  Data/Fuzzy/Pertenencias/<claveDish>.csv
- *  Salida:   Data/SistemaDifuso/ScoresElementales/<claveDish>.csv
- *
- *  Compilación:
- *      g++ -std=c++17 -O2 -I../scripts_genericos/include \
- *          ../scripts_genericos/src/Logger.cpp \
- *          ../scripts_genericos/src/PathManager.cpp \
- *          ../scripts_genericos/src/MotorReglas.cpp \
- *          ../scripts_genericos/src/Defuzzificador.cpp \
- *          SistemaDifusoSesion.cpp -o sistema_difuso_sesion
- *
- *  Uso:
- *      ./sistema_difuso_sesion <Ciudad_Platillo_Angulo>
+/* Etapa 6: aplica reglas difusas y defuzzificacion por dimension.
+ * Genera scores elementales por alumno para una sesion.
  */
 
 #include "Logger.hpp"
@@ -59,6 +24,7 @@ struct FilaPertenencia {
     GradosPertenencia grados;
 };
 
+/// Lee pertenencias fuzzificadas y devuelve filas validas.
 std::vector<FilaPertenencia> leerPertenencias(const fs::path& ruta) {
     std::vector<FilaPertenencia> filas;
     std::ifstream archivo(ruta);
@@ -96,6 +62,8 @@ std::vector<FilaPertenencia> leerPertenencias(const fs::path& ruta) {
     return filas;
 }
 
+/// Ejecuta inferencia difusa y defuzzificacion para una sesion.
+/// Devuelve 0 si el archivo de scores se genera correctamente.
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Uso: " << argv[0] << " <Ciudad_Platillo_Angulo>" << std::endl;
@@ -114,7 +82,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    TablaReglas tabla; // valores por defecto — ver nota sobre AjustadorReglas
+    TablaReglas tabla;
 
     fs::path rutaSalida = rutas.scoresElementales() / (claveDish + ".csv");
     std::error_code ec;
@@ -134,7 +102,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-// Compilación: ver bloque al inicio del archivo.
-// Uso:
-//   ./sistema_difuso_sesion <Ciudad_Platillo_Angulo>

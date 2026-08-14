@@ -66,9 +66,7 @@
 namespace fs = std::filesystem;
 using namespace evaluador;
 
-// ============================================================================
 // ESTRUCTURAS DE DATOS
-// ============================================================================
 
 // ProcessedImage se queda local: carga el estado especifico de esta etapa
 // (original + preprocessed) que no le corresponde a un modulo generico.
@@ -102,9 +100,7 @@ struct GroupKey
     }
 };
 
-// ============================================================================
 // DECLARACIONES DE FUNCIONES
-// ============================================================================
 
 std::map<GroupKey, std::vector<fs::path>> recolectarRutasPorGrupo(const std::string& directory);
 std::vector<std::unique_ptr<ProcessedImage>> cargarGrupo(const std::vector<fs::path>& rutas);
@@ -121,9 +117,7 @@ bool savePreprocessed(const ProcessedImage& img, const std::string& output_dir);
 int procesarGrupo(const GroupKey& key, std::vector<std::unique_ptr<ProcessedImage>>& images,
                    const std::string& output_dir);
 
-// ============================================================================
 // IMPLEMENTACIONES — CARGA DE DATOS
-// ============================================================================
 
 // Solo LISTA las rutas de imagenes *_seg.png y las agrupa por
 // (Ciudad, Platillo, Angulo) — NO carga ninguna imagen en memoria
@@ -217,9 +211,7 @@ std::vector<std::unique_ptr<ProcessedImage>> cargarGrupo(const std::vector<fs::p
     return images;
 }
 
-// ============================================================================
 // IMPLEMENTACIONES — REDIMENSIONAMIENTO
-// ============================================================================
 
 // Redimensiona la imagen a target_size × target_size píxeles.
 // Se usa interpolación INTER_AREA (recomendada para reducir resolución)
@@ -234,9 +226,7 @@ cv::Mat resizeUniform(const cv::Mat& image, int target_size)
     return resized;
 }
 
-// ============================================================================
 // IMPLEMENTACIONES — CORRECCIÓN DE ORIENTACIÓN
-// ============================================================================
 
 // Detecta el ángulo de inclinación del platillo usando el contorno principal
 // y el rectángulo mínimo de área (minAreaRect).
@@ -373,9 +363,7 @@ cv::Mat correctOrientation(const cv::Mat& image)
     return rotated;
 }
 
-// ============================================================================
 // IMPLEMENTACIONES — SSIM Y ALINEACIÓN
-// ============================================================================
 
 // Calcula el Índice de Similitud Estructural (SSIM) entre dos imágenes en
 // escala de grises del mismo tamaño.
@@ -457,9 +445,7 @@ cv::Mat alignToReference(const cv::Mat& student, const cv::Mat& reference)
     return student.clone();
 }
 
-// ============================================================================
 // IMPLEMENTACIONES — PIPELINE COMPLETO
-// ============================================================================
 
 // Pipeline de preprocesamiento para una imagen:
 //   1. Resize 224×224
@@ -606,9 +592,7 @@ int procesarGrupo(const GroupKey& key, std::vector<std::unique_ptr<ProcessedImag
     return procesadas;
 }
 
-// ============================================================================
 // FUNCIÓN PRINCIPAL
-// ============================================================================
 
 // Verifica si YA existe el _pre.png de salida para esta ruta *_seg.png,
 // sin cargar la imagen — permite reanudar sin repetir trabajo despues

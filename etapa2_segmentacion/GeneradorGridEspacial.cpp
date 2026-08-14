@@ -1,5 +1,5 @@
-/* GeneradorGridEspacial.cpp
- * Etapa 2 - Segmentación Agnóstica (Grid Espacial)
+/* Etapa 2: genera mascara global y zonas espaciales 4x4.
+ * Usa la imagen preprocesada para construir mascaras por region.
  */
 
 #include "Logger.hpp"
@@ -13,6 +13,8 @@
 using namespace evaluador;
 namespace fs = std::filesystem;
 
+/// Genera mascara global y mascaras por zona para una imagen.
+/// Devuelve 0 si todas las salidas se crean correctamente.
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Uso: ./generador_grid <ruta_imagen_preprocesada>\n";
@@ -20,32 +22,31 @@ int main(int argc, char** argv) {
     }
 
     fs::path rutaImagen = argv[1];
-    int gridSize = 4; // Cuadrícula por defecto de 4x4 (16 zonas)
+    int gridSize = 4; // Cuadricula 4x4 (16 zonas).
 
-    // Cargar la imagen maestra preprocesada
+    // Carga la imagen preprocesada.
     cv::Mat imagen = cv::imread(rutaImagen.string(), cv::IMREAD_COLOR);
     if (imagen.empty()) {
         Logger::instance().error("GeneradorGrid", "No se pudo cargar la imagen: " + rutaImagen.string());
         return 1;
     }
 
-    // 1. EXTRAER MÁSCARA GLOBAL (Materia comestible vs plato/fondo vacío)
-    // Como la imagen preprocesada ya tiene el fondo negro puro (0,0,0), todo lo que tenga valor > 1 es comida
+    // Extrae mascara global de alimento sobre fondo negro.
     cv::Mat gris, mascaraGlobal;
     cv::cvtColor(imagen, gris, cv::COLOR_BGR2GRAY);
     cv::threshold(gris, mascaraGlobal, 1, 255, cv::THRESH_BINARY);
 
-    // 2. CREAR CARPETA DE SALIDA LOCAL "Grids"
+    // Crea carpeta local de salida.
     fs::path dirBase = rutaImagen.parent_path();
     fs::path dirGrids = dirBase / "Grids";
     std::error_code ec;
     fs::create_directories(dirGrids, ec);
 
-    // Guardar la máscara global alineada de 224x224 para la Etapa 3
+    // Guarda mascara global para la etapa 3.
     fs::path rutaMascaraGlobal = dirGrids / "mascara_global.png";
     cv::imwrite(rutaMascaraGlobal.string(), mascaraGlobal);
 
-    // 3. SUBDIVIDIR EN ZONAS MEDIBLES (Grid Espacial)
+    // Divide la imagen en zonas medibles.
     int width = imagen.cols;
     int height = imagen.rows;
     int stepX = width / gridSize;
@@ -63,8 +64,7 @@ int main(int argc, char** argv) {
             cv::Rect roi(x, y, w, h);
             cv::rectangle(mascaraParche, roi, cv::Scalar(255), cv::FILLED);
 
-            // Intersectar la zona geométrica con la máscara global 
-            // Esto asegura que solo mediremos píxeles que contengan comida real en esa zona
+            // Interseca la zona con la mascara global para conservar solo alimento.
             cv::bitwise_and(mascaraParche, mascaraGlobal, mascaraParche);
 
             std::string nombreMascara = "zona_" + std::to_string(i) + "_" + std::to_string(j) + ".png";
@@ -72,6 +72,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    Logger::instance().info("GeneradorGrid", "Grid y Mascara Global creados en: " + dirGrids.string());
+    Logger::instance().info("GeneradorGrid", "Grid y mascara global creados en: " + dirGrids.string());
     return 0;
 }

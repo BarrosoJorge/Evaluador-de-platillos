@@ -1,38 +1,5 @@
-/*  RubricaSesion.cpp
- *
- *  Etapa 7 del pipeline — Rúbrica final (agregación).
- *
- *  Ultima etapa. Lee el CSV que dejo SistemaDifusoSesion.cpp (etapa 6)
- *  — un score 1-10 por alumno x dimension elemental — y para cada
- *  alumno:
- *    1. Agregador: promedio simple de las dimensiones que caen en cada
- *       una de las 6 categorias de la rubrica (categoriaDeDimension()
- *       decide el mapeo por patron, no por lista fija de nombres)
- *    2. GeneradorReporte: arma el texto legible final
- *
- *  "Altura y volumen" en la salida SIEMPRE aparece como "Sin dato
- *  disponible" — no es un bug, es la etapa 7 siendo honesta sobre una
- *  limitacion que se identifico desde el inicio de la conversacion
- *  (no se puede medir volumen con una sola foto RGB sin profundidad,
- *  y nunca se implemento un proxy). Si en algun momento se agrega una
- *  forma de estimarlo (etapa 3, nueva dimension elemental con sufijo
- *  reconocido por categoriaDeDimension), esta etapa lo recogeria sin
- *  cambios.
- *
- *  Entrada:  Data/SistemaDifuso/ScoresElementales/<claveDish>.csv
- *  Salida:   Data/Rubrica/Reportes/<claveDish>.csv          (machine-readable)
- *            Data/Rubrica/Reportes/<claveDish>_reporte.txt  (legible)
- *
- *  Compilación:
- *      g++ -std=c++17 -O2 -I../scripts_genericos/include \
- *          ../scripts_genericos/src/Logger.cpp \
- *          ../scripts_genericos/src/PathManager.cpp \
- *          ../scripts_genericos/src/Agregador.cpp \
- *          ../scripts_genericos/src/GeneradorReporte.cpp \
- *          RubricaSesion.cpp -o rubrica_sesion
- *
- *  Uso:
- *      ./rubrica_sesion <Ciudad_Platillo_Angulo>
+/* Etapa 7: agrega scores elementales por categoria de rubrica.
+ * Genera salida CSV y reporte textual por sesion.
  */
 
 #include "Logger.hpp"
@@ -57,6 +24,7 @@ struct FilaScoreCruda {
     double score = 0.0;
 };
 
+/// Lee scores elementales y devuelve filas validas por alumno/dimension.
 std::vector<FilaScoreCruda> leerScores(const fs::path& ruta) {
     std::vector<FilaScoreCruda> filas;
     std::ifstream archivo(ruta);
@@ -91,6 +59,8 @@ std::vector<FilaScoreCruda> leerScores(const fs::path& ruta) {
     return filas;
 }
 
+/// Ejecuta la agregacion de rubrica para una sesion.
+/// Devuelve 0 si los reportes se generan correctamente.
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Uso: " << argv[0] << " <Ciudad_Platillo_Angulo>" << std::endl;
@@ -109,7 +79,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Agrupar por alumno
+    // Agrupa los scores por alumno.
     std::map<std::string, std::vector<ScoreElemental>> scoresPorAlumno;
     for (const auto& f : filas) {
         scoresPorAlumno[f.alumno].push_back({f.dimension, f.score});
@@ -162,7 +132,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-// Compilación: ver bloque al inicio del archivo.
-// Uso:
-//   ./rubrica_sesion <Ciudad_Platillo_Angulo>

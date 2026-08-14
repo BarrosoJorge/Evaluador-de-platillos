@@ -15,10 +15,7 @@ enum class LogLevel {
     ERROR = 3
 };
 
-// Logger singleton, thread-safe. Escribe a consola y opcionalmente a archivo.
-// Uso:
-//   Logger::instance().setLogFile("data/logs/pipeline.log");
-//   Logger::instance().info("Segmentacion", "Imagen procesada correctamente");
+// Logger singleton thread-safe para consola y archivo opcional.
 class Logger {
 public:
     static Logger& instance();

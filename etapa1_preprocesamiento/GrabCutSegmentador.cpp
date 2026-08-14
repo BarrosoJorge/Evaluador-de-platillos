@@ -67,9 +67,7 @@
 namespace fs = std::filesystem;
 using namespace evaluador;
 
-// ============================================================================
 // ESTRUCTURAS DE DATOS
-// ============================================================================
 
 // DishImage se queda local (no es generico): carga el estado especifico de
 // esta etapa (mask, segmented, processed) que ImageIO no necesita conocer.
@@ -92,9 +90,7 @@ struct DishImage
     }
 };
 
-// ============================================================================
 // DECLARACIONES DE FUNCIONES
-// ============================================================================
 
 std::vector<fs::path> recolectarRutas(const std::string& directory);
 std::vector<std::unique_ptr<DishImage>> cargarLote(const std::vector<fs::path>& rutas);
@@ -104,9 +100,7 @@ bool saveSegmented(const DishImage& img, const std::string& output_dir);
 void interactiveSegmentation(std::vector<std::unique_ptr<DishImage>>& images,
                               const std::string& output_dir);
 
-// ============================================================================
 // IMPLEMENTACIONES — CARGA DE DATOS
-// ============================================================================
 
 // Solo LISTA las rutas de imagenes soportadas — no las carga en memoria.
 // Es la parte barata; separarla de la carga real es lo que permite
@@ -181,9 +175,7 @@ std::vector<std::unique_ptr<DishImage>> cargarLote(const std::vector<fs::path>& 
     return images;
 }
 
-// ============================================================================
 // IMPLEMENTACIONES — GUARDADO
-// ============================================================================
 
 // Guarda la máscara (*_mask.png) y la imagen segmentada (*_seg.png)
 // reproduciendo la jerarquía Ciudad/Platillo/Angulo/Autor/ en output_dir.
@@ -243,7 +235,7 @@ void interactiveSegmentation(std::vector<std::unique_ptr<DishImage>>& images,
     for (size_t i = 0; i < images.size(); ++i) {
         DishImage* img = images[i].get();
 
-        std::cout << "\n" << std::string(70, '=') << std::endl;
+        std::cout << "\n" << std::string(1, ' ') << std::endl;
         std::cout << "Imagen " << (i + 1) << " de " << images.size()
                   << ": " << img->filename << std::endl;
         if (!img->metadata.vacio()) {
@@ -252,7 +244,7 @@ void interactiveSegmentation(std::vector<std::unique_ptr<DishImage>>& images,
                       << img->metadata.angulo << " / "
                       << img->metadata.autor << "]" << std::endl;
         }
-        std::cout << std::string(70, '=') << std::endl;
+        std::cout << std::string(1, ' ') << std::endl;
 
         std::cout << "Forma del ROI — (r)ectangulo / (e)lipse ["
                   << (formaActual == FormaROI::Rectangulo ? "r" : "e") << "]: ";
@@ -352,9 +344,7 @@ void interactiveSegmentation(std::vector<std::unique_ptr<DishImage>>& images,
         "Segmentacion finalizada: " + std::to_string(done) + " de " + std::to_string(images.size()) + " imagenes procesadas.");
 }
 
-// ============================================================================
 // MODO AUTOMÁTICO — sin GUI
-// ============================================================================
 
 // Segmenta todas las imágenes sin intervención del usuario.
 // Usa un ROI central al 70% de la imagen (margen del 15% en cada lado).
@@ -402,9 +392,7 @@ void autoSegmentAll(std::vector<std::unique_ptr<DishImage>>& images,
         "Total: " + std::to_string(done) + " de " + std::to_string(images.size()) + " imagenes segmentadas.");
 }
 
-// ============================================================================
 // FUNCIÓN PRINCIPAL
-// ============================================================================
 
 int main(int argc, char** argv)
 {
