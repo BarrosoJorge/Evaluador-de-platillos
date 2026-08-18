@@ -1,20 +1,4 @@
-/*
-Delabeler: quita especificamente el token de CALIDAD (B/R/M) del nombre
-de un video de alumno, cuando ya existe (ej. "Queretaro_Huevo_Superior_
-Estudiante_B.mp4" -> "Queretaro_Huevo_Superior_Estudiante.mp4").
-
-Cambio respecto a la version anterior de este archivo: antes era un
-"quita lo que sea que siga al ultimo guion bajo" completamente
-generico. Eso funcionaba por accidente para nombres de Estudiante (el
-ultimo token SI es la calidad), pero rompia los nombres de Chef —
-"..._Chef.MP4" no tiene calidad, y el stripper generico le habria
-quitado "Chef" completo, dejando el video sin autor. Ahora usa
-VideoMetadata::parsearNombreArchivo() (el mismo parser que ya usan
-Labeler/VideoToImage) para saber con certeza si el ultimo token es
-realmente una calidad valida (B/R/M) antes de tocar nada — a los
-videos de Chef, o a nombres que no siguen la convencion todavia
-(fuera de formato, con typos, etc.), NO se les quita nada.
-*/
+// Elimina el sufijo de calidad del nombre de video cuando existe.
 
 #include "Logger.hpp"
 #include "PathManager.hpp"

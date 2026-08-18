@@ -1,39 +1,4 @@
-/*
-VideoToImage: convierte videos ya etiquetados (formato
-Ciudad_Platillo_Angulo_Autor_Calidad) en imagenes organizadas por
-metadato, y extrae hasta N imagenes por video.
-
-Cambios en esta version:
-
-1. RECURSIVO (correccion de bug): antes usaba fs::directory_iterator
-   (un solo nivel). Con tu estructura real, los videos estan anidados
-   varios niveles (Data/Raw/Videos/CDMX/Decoración Limón/*.MP4,
-   Queretaro/Huevo/Huevo/*.mov, etc.) — con el iterador de un solo
-   nivel esto encontraba CERO videos. Ahora usa
-   fs::recursive_directory_iterator.
-
-2. FILTRO DE ANGULO: nuevo parametro opcional (4to argumento) para
-   procesar solo un angulo especifico (ej. "Superior", ignorando
-   "Lateral"). Por defecto es "Superior" porque fue lo que pediste;
-   pasa "" (string vacio) como 4to argumento si en algun momento
-   quieres procesar todos los angulos sin filtrar.
-
-Conflicto de jerarquia de carpetas (de la version anterior, sigue igual):
-  Tu comentario original describia la salida como
-    Data/Raw/Imagenes/Ciudad/Platillo/Angulo/Autor[/Calidad]
-  pero el PathManager que ya definimos en scripts_genericos usa un
-  arbol PLANO:
-    Data/Imagenes/Crudas   (sin subcarpetas por metadato)
-
-  Se resolvio usando PathManager::imagenesCrudas() y
-  PathManager::videosCrudos() como RAIZ, y anidando por metadato
-  DEBAJO de esa raiz — conserva tu logica de organizacion pero ya no
-  vive en una ruta hardcodeada de Windows/WSL.
-
-Tambien: VideoMetadata (struct + parseFilename + format) ya no vive
-aqui, se movio a scripts_genericos porque era identica a la de
-Labeler.cpp.
-*/
+// Genera imágenes por metadato a partir de videos ya etiquetados.
 
 #include "Logger.hpp"
 #include "PathManager.hpp"

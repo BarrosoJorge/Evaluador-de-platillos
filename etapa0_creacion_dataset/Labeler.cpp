@@ -4,22 +4,6 @@ convencion Ciudad_Platillo_Angulo_Autor_Calidad. Muestra el primer
 frame de cada video como referencia visual mientras el usuario escribe
 el nuevo nombre.
 
-Cambios respecto a tu version original:
-  - VideoMetadata ya no vive aqui: se movio a scripts_genericos, porque
-    era identica a la de VideoToImage.cpp y el riesgo de que ambas
-    copias se desincronizaran con el tiempo era real.
-  - validateMetadata() tenia un "return true;" al inicio que desactivaba
-    TODA la validacion (angulo, autor, calidad) sin decirlo en ningun
-    log. Lo quite y dejo la validacion real activa via
-    evaluador::validarMetadata(). Si la desactivaste a proposito porque
-    aun estabas probando con nombres fuera de formato, dimelo y lo
-    regreso pero con un log de WARN explicito en vez de silencioso.
-  - Quite la funcion preview() (el thread standalone): interactiveSession
-    ya reimplementaba la misma logica de imshow/waitKey en linea, asi
-    que preview() estaba declarada y nunca se usaba. Si la necesitas
-    para otro flujo (ej. previsualizar un solo video sin sesion
-    interactiva completa), la regreso.
-*/
 
 #include "Logger.hpp"
 #include "PathManager.hpp"

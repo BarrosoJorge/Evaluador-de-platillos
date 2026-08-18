@@ -1,38 +1,4 @@
-/*  PipelineSingle.cpp
- *
- *  Prueba integral del pipeline completo sobre UNA sola imagen.
- *
- *  Pasos que ejecuta:
- *    1. Segmentación automática con GrabCut (ROI central al 70%)
- *       + postprocesamiento morfológico + inpainting Telea
- *    2. Redimensionamiento a 224×224
- *    3. Corrección de orientación (minAreaRect)
- *    4. Extracción de características:
- *         · Raw    — estadísticas de histograma de píxeles
- *         · SDH    — histogramas de suma y diferencia
- *         · GLCM   — matrices de co-ocurrencia (d=1,3,7 | θ=0,45,90,135°)
- *         · LBP    — Local Binary Pattern
- *         · HOG    — Histograma de gradientes orientados
- *         · Color  — estadísticas HSV + CIE L*a*b*
- *
- *  Salida:
- *    Data/Processed/Image/
- *      <stem>_seg.png    — imagen segmentada
- *      <stem>_mask.png   — máscara binaria
- *      <stem>_pre.png    — imagen preprocesada (224×224)
- *    Data/Processed/Features/
- *      features_raw.csv, features_sdh.csv, features_glcm.csv,
- *      features_lbp.csv, features_hog.csv, features_color.csv
- *      maps/<stem>/<extractor>_<feature>_w<N>.png
- *
- *  Compilación:
- *      g++ -std=c++17 -O2 -o PipelineSingle PipelineSingle.cpp \
- *          `pkg-config --cflags --libs opencv4`
- *
- *  Uso:
- *      ./PipelineSingle <ruta_imagen> [ruta_salida_imagen] [ruta_salida_features]
- *      ./PipelineSingle "Data/Raw/Imagenes/CDMX/Limon/Lateral/Chef/CDMX_Limon_Lateral_Chef_0.jpg"
- */
+// Prueba puntual del pipeline completo sobre una sola imagen.
 
 #include <iostream>
 #include <string>

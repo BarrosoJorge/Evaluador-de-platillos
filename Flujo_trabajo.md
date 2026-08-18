@@ -14,7 +14,7 @@
   6. Proporción y enfoque
 
 
-## Decisiones de diseño clave
+## Decisiones de diseño 
 
 - **Whole-image pixel-a-pixel se descarta** como método principal: no hay garantía de alineación entre foto de chef y de alumno (ángulo, distancia, iluminación), y no da interpretabilidad por componente.
 - **Evaluación por áreas/elementos** es el enfoque correcto, coherente con el pipeline existente de segmentación (GrabCut) y extracción de features por ventaneo.

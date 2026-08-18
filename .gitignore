@@ -13,3 +13,7 @@ scripts de caracteristicas/Raw/
 .DS_Store
 Thumbs.db
 .vscode/
+
+
+depurador_rutas.py
+generar_resultados.py

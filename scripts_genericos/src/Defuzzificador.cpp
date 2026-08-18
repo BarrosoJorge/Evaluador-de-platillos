@@ -5,7 +5,7 @@ namespace evaluador {
 
 double defuzzificar(const std::vector<std::pair<double, double>>& disparos) {
     if (disparos.empty()) {
-        Logger::instance().warn("Defuzzificador", "Sin disparos — devolviendo punto medio (5.5) por defecto.");
+        Logger::instance().warn("Defuzzificador", "Sin disparos; usa valor medio.");
         return 5.5;
     }
 
@@ -18,7 +18,7 @@ double defuzzificar(const std::vector<std::pair<double, double>>& disparos) {
     }
 
     if (sumaFuerzas <= 0.0) {
-        Logger::instance().warn("Defuzzificador", "Suma de fuerzas <= 0 — devolviendo punto medio (5.5) por defecto.");
+        Logger::instance().warn("Defuzzificador", "Suma de fuerzas <= 0; usa valor medio.");
         return 5.5;
     }
 

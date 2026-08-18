@@ -27,7 +27,7 @@ void ConfigLoader::parsear(const std::filesystem::path& rutaArchivo) {
 
         auto posIgual = limpia.find('=');
         if (posIgual == std::string::npos) {
-            Logger::instance().warn("ConfigLoader", "Linea ignorada (sin '='): " + limpia);
+            Logger::instance().warn("ConfigLoader", "Linea sin '='; se ignora: " + limpia);
             continue;
         }
 

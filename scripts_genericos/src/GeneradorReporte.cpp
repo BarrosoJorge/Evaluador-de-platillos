@@ -9,7 +9,6 @@ std::string generarReporteTexto(const RubricaAlumno& rubrica) {
     std::ostringstream oss;
 
     oss << "Rubrica: " << rubrica.alumno << "\n";
-    oss << std::string(50, '-') << "\n";
 
     for (const auto& categoria : categoriasRubrica()) {
         auto valor = rubrica.valorPorCategoria.at(categoria);
@@ -25,8 +24,6 @@ std::string generarReporteTexto(const RubricaAlumno& rubrica) {
         }
         oss << "\n";
     }
-
-    oss << std::string(50, '-') << "\n";
 
     return oss.str();
 }

@@ -6,18 +6,8 @@
 
 namespace evaluador {
 
-// Funciones de segmentación reutilizadas por GrabCutSegmentador (aislar
-// el platillo del fondo, en preprocesamiento), Segmentador (dividir al
-// chef en regiones nombradas) y Localizador (encontrar esas regiones en
-// el alumno). Antes vivian duplicadas dentro de GrabCutSegmentador.cpp;
-// se movieron aqui porque Segmentador y Localizador necesitan exactamente
-// la misma logica de GrabCut + limpieza morfologica.
-
-// Forma del ROI inicial que se le da a GrabCut. Rectangulo es la
-// convencion de OpenCV (GC_INIT_WITH_RECT); Elipse inscribe una
-// elipse dentro del rectangulo delimitador y usa GC_INIT_WITH_MASK —
-// util porque la mayoria de los platos son redondos, no rectangulares,
-// y una elipse arranca el algoritmo mas cerca de la forma real.
+// Utilidades compartidas para segmentación y limpieza morfológica.
+// Se usan por la etapa de segmentación y por la fase de localización.
 enum class FormaROI { Rectangulo, Elipse };
 
 // Aplica GrabCut con el rectangulo ROI dado. Modela fondo y foreground
